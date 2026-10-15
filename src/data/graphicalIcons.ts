@@ -1,0 +1,298 @@
+import {
+  ShieldCheck,
+  Lock,
+  Fingerprint,
+  KeyRound,
+  Cpu,
+  Terminal,
+  CloudLightning,
+  Satellite,
+  Radar,
+  Network,
+  Database,
+  Eye,
+  Flame,
+  Radio,
+  Binary,
+  Wifi,
+  Bug,
+  Server,
+  Anchor,
+  Zap,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import type { GraphicalIconItem } from '../types';
+
+export const GRAPHICAL_ICONS: GraphicalIconItem[] = [
+  {
+    id: 'shield_quantum',
+    name: 'Hardware Security (HSM)',
+    category: 'Hardware',
+    iconKey: 'ShieldCheck',
+    accent: {
+      bg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
+      border: 'border-emerald-500/40 hover:border-emerald-500',
+      text: 'text-emerald-600 dark:text-emerald-400',
+      glow: 'shadow-emerald-500/20',
+    },
+  },
+  {
+    id: 'crypto_vault',
+    name: 'Cryptographic Key Vault',
+    category: 'Cryptography',
+    iconKey: 'Lock',
+    accent: {
+      bg: 'bg-cyan-500/10 dark:bg-cyan-500/20',
+      border: 'border-cyan-500/40 hover:border-cyan-500',
+      text: 'text-cyan-600 dark:text-cyan-400',
+      glow: 'shadow-cyan-500/20',
+    },
+  },
+  {
+    id: 'biometric_scan',
+    name: 'Biometric Auth Sentinel',
+    category: 'Defense',
+    iconKey: 'Fingerprint',
+    accent: {
+      bg: 'bg-teal-500/10 dark:bg-teal-500/20',
+      border: 'border-teal-500/40 hover:border-teal-500',
+      text: 'text-teal-600 dark:text-teal-400',
+      glow: 'shadow-teal-500/20',
+    },
+  },
+  {
+    id: 'hardware_token',
+    name: 'FIDO2 Hardware Key',
+    category: 'Hardware',
+    iconKey: 'KeyRound',
+    accent: {
+      bg: 'bg-amber-500/10 dark:bg-amber-500/20',
+      border: 'border-amber-500/40 hover:border-amber-500',
+      text: 'text-amber-600 dark:text-amber-400',
+      glow: 'shadow-amber-500/20',
+    },
+  },
+  {
+    id: 'quantum_cpu',
+    name: 'Secure Enclave Processor',
+    category: 'Hardware',
+    iconKey: 'Cpu',
+    accent: {
+      bg: 'bg-indigo-500/10 dark:bg-indigo-500/20',
+      border: 'border-indigo-500/40 hover:border-indigo-500',
+      text: 'text-indigo-600 dark:text-indigo-400',
+      glow: 'shadow-indigo-500/20',
+    },
+  },
+  {
+    id: 'root_terminal',
+    name: 'SSH Bastion Terminal',
+    category: 'Intelligence',
+    iconKey: 'Terminal',
+    accent: {
+      bg: 'bg-green-500/10 dark:bg-green-500/20',
+      border: 'border-green-500/40 hover:border-green-500',
+      text: 'text-green-600 dark:text-green-400',
+      glow: 'shadow-green-500/20',
+    },
+  },
+  {
+    id: 'zero_trust_mesh',
+    name: 'Zero-Trust SASE Cloud',
+    category: 'Network',
+    iconKey: 'CloudLightning',
+    accent: {
+      bg: 'bg-sky-500/10 dark:bg-sky-500/20',
+      border: 'border-sky-500/40 hover:border-sky-500',
+      text: 'text-sky-600 dark:text-sky-400',
+      glow: 'shadow-sky-500/20',
+    },
+  },
+  {
+    id: 'satellite_link',
+    name: 'Orbital SatCom Uplink',
+    category: 'Network',
+    iconKey: 'Satellite',
+    accent: {
+      bg: 'bg-blue-500/10 dark:bg-blue-500/20',
+      border: 'border-blue-500/40 hover:border-blue-500',
+      text: 'text-blue-600 dark:text-blue-400',
+      glow: 'shadow-blue-500/20',
+    },
+  },
+  {
+    id: 'threat_radar',
+    name: 'SIEM Threat Intelligence',
+    category: 'Intelligence',
+    iconKey: 'Radar',
+    accent: {
+      bg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
+      border: 'border-emerald-500/40 hover:border-emerald-500',
+      text: 'text-emerald-600 dark:text-emerald-400',
+      glow: 'shadow-emerald-500/20',
+    },
+  },
+  {
+    id: 'fiber_matrix',
+    name: 'Enterprise VPN Fabric',
+    category: 'Network',
+    iconKey: 'Network',
+    accent: {
+      bg: 'bg-violet-500/10 dark:bg-violet-500/20',
+      border: 'border-violet-500/40 hover:border-violet-500',
+      text: 'text-violet-600 dark:text-violet-400',
+      glow: 'shadow-violet-500/20',
+    },
+  },
+  {
+    id: 'encrypted_ledger',
+    name: 'Encrypted Directory (LDAP)',
+    category: 'Cryptography',
+    iconKey: 'Database',
+    accent: {
+      bg: 'bg-fuchsia-500/10 dark:bg-fuchsia-500/20',
+      border: 'border-fuchsia-500/40 hover:border-fuchsia-500',
+      text: 'text-fuchsia-600 dark:text-fuchsia-400',
+      glow: 'shadow-fuchsia-500/20',
+    },
+  },
+  {
+    id: 'sentinel_eye',
+    name: 'Privileged Access Monitor',
+    category: 'Intelligence',
+    iconKey: 'Eye',
+    accent: {
+      bg: 'bg-rose-500/10 dark:bg-rose-500/20',
+      border: 'border-rose-500/40 hover:border-rose-500',
+      text: 'text-rose-600 dark:text-rose-400',
+      glow: 'shadow-rose-500/20',
+    },
+  },
+  {
+    id: 'plasma_firewall',
+    name: 'Next-Gen Firewall (NGFW)',
+    category: 'Defense',
+    iconKey: 'Flame',
+    accent: {
+      bg: 'bg-orange-500/10 dark:bg-orange-500/20',
+      border: 'border-orange-500/40 hover:border-orange-500',
+      text: 'text-orange-600 dark:text-orange-400',
+      glow: 'shadow-orange-500/20',
+    },
+  },
+  {
+    id: 'rf_spectrum',
+    name: 'WPA3 Enterprise RADIUS',
+    category: 'Network',
+    iconKey: 'Radio',
+    accent: {
+      bg: 'bg-purple-500/10 dark:bg-purple-500/20',
+      border: 'border-purple-500/40 hover:border-purple-500',
+      text: 'text-purple-600 dark:text-purple-400',
+      glow: 'shadow-purple-500/20',
+    },
+  },
+  {
+    id: 'binary_stream',
+    name: 'TLS 1.3 Cipher Suite',
+    category: 'Cryptography',
+    iconKey: 'Binary',
+    accent: {
+      bg: 'bg-teal-500/10 dark:bg-teal-500/20',
+      border: 'border-teal-500/40 hover:border-teal-500',
+      text: 'text-teal-600 dark:text-teal-400',
+      glow: 'shadow-teal-500/20',
+    },
+  },
+  {
+    id: 'secure_mesh',
+    name: 'Mesh Perimeter Gateway',
+    category: 'Network',
+    iconKey: 'Wifi',
+    accent: {
+      bg: 'bg-cyan-500/10 dark:bg-cyan-500/20',
+      border: 'border-cyan-500/40 hover:border-cyan-500',
+      text: 'text-cyan-600 dark:text-cyan-400',
+      glow: 'shadow-cyan-500/20',
+    },
+  },
+  {
+    id: 'threat_probe',
+    name: 'EDR Vulnerability Probe',
+    category: 'Defense',
+    iconKey: 'Bug',
+    accent: {
+      bg: 'bg-pink-500/10 dark:bg-pink-500/20',
+      border: 'border-pink-500/40 hover:border-pink-500',
+      text: 'text-pink-600 dark:text-pink-400',
+      glow: 'shadow-pink-500/20',
+    },
+  },
+  {
+    id: 'mainframe_node',
+    name: 'Redundant Server Cluster',
+    category: 'Hardware',
+    iconKey: 'Server',
+    accent: {
+      bg: 'bg-slate-500/10 dark:bg-slate-500/20',
+      border: 'border-slate-500/40 hover:border-slate-500',
+      text: 'text-slate-600 dark:text-slate-400',
+      glow: 'shadow-slate-500/20',
+    },
+  },
+  {
+    id: 'crypto_anchor',
+    name: 'Root of Trust CA',
+    category: 'Cryptography',
+    iconKey: 'Anchor',
+    accent: {
+      bg: 'bg-amber-500/10 dark:bg-amber-500/20',
+      border: 'border-amber-500/40 hover:border-amber-500',
+      text: 'text-amber-600 dark:text-amber-400',
+      glow: 'shadow-amber-500/20',
+    },
+  },
+  {
+    id: 'power_core',
+    name: 'Fault-Tolerant Power Grid',
+    category: 'Hardware',
+    iconKey: 'Zap',
+    accent: {
+      bg: 'bg-yellow-500/10 dark:bg-yellow-500/20',
+      border: 'border-yellow-500/40 hover:border-yellow-500',
+      text: 'text-yellow-600 dark:text-yellow-400',
+      glow: 'shadow-yellow-500/20',
+    },
+  },
+];
+
+const ICON_MAP: Record<string, LucideIcon> = {
+  ShieldCheck,
+  Lock,
+  Fingerprint,
+  KeyRound,
+  Cpu,
+  Terminal,
+  CloudLightning,
+  Satellite,
+  Radar,
+  Network,
+  Database,
+  Eye,
+  Flame,
+  Radio,
+  Binary,
+  Wifi,
+  Bug,
+  Server,
+  Anchor,
+  Zap,
+};
+
+export function getIconComponent(iconKey: string): LucideIcon {
+  return ICON_MAP[iconKey] || ShieldCheck;
+}
+
+export const REQUIRED_RECOGNITION_COUNT = 4;
+export const REQUIRED_RECALL_MIN_COUNT = 4;
+export const REQUIRED_RECALL_MAX_COUNT = 5;
