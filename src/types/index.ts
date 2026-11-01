@@ -82,3 +82,62 @@ export type AuthView =
   | 'registration-success'
   | 'setup-graphical'
   | 'dashboard';
+
+// ============================================================================
+// Internal Canary Token & Incident Interfaces (Phase 1)
+// ============================================================================
+
+export type InternalCanaryTokenType = 'file' | 'url' | 'credential' | 'custom';
+export type InternalCanarySeverity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+
+export interface InternalCanaryUserContext {
+  userId?: string;
+  email?: string;
+  username?: string;
+  role?: string;
+  action?: string;
+  channel?: string;
+}
+
+export interface InternalCanaryToken {
+  id: string;
+  name: string;
+  type: InternalCanaryTokenType;
+  resourceDescription: string;
+  targetResource: string;
+  decoyData?: string;
+  enabled: boolean;
+  tripCount: number;
+  lastTriggeredAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface InternalCanaryIncident {
+  id: string;
+  tokenId: string;
+  tokenName: string;
+  tokenType: InternalCanaryTokenType;
+  resourceName?: string;
+  eventType?: string;
+  timestamp: string;
+  severity: InternalCanarySeverity;
+  resourceDescription: string;
+  userContext?: InternalCanaryUserContext;
+  summary: string;
+  origin: 'server' | 'sandbox';
+}
+
+export interface CorporateDocument {
+  id: string;
+  name: string;
+  type: string;
+  size: string;
+  department: string;
+  uploadedAt: string;
+  content: string;
+  isMonitored: boolean;
+  canaryTokenId?: string;
+}
+

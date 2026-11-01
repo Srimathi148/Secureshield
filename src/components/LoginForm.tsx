@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Shield,
   User,
@@ -202,7 +202,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               className="px-2 py-1.5 rounded-lg text-left text-[11px] bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60 transition-colors"
             >
               <div className="font-bold flex items-center gap-1">
-                <span>🛡️ Admin (CSO)</span>
+                <span>🛡️ Admin</span>
               </div>
               <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate">Recognition MFA</div>
             </button>
@@ -217,7 +217,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               className="px-2 py-1.5 rounded-lg text-left text-[11px] bg-teal-50 hover:bg-teal-100 dark:bg-teal-950/40 dark:hover:bg-teal-900/60 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800/60 transition-colors"
             >
               <div className="font-bold flex items-center gap-1">
-                <span>🏦 Bank Operator</span>
+                <span>🏦 Bank User</span>
               </div>
               <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate">Recognition MFA</div>
             </button>

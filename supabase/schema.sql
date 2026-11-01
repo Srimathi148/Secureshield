@@ -139,3 +139,4 @@ CREATE TRIGGER on_user_graphical_credentials_updated
 -- 6. Helper index for high-throughput enterprise lookups
 CREATE INDEX IF NOT EXISTS idx_user_graphical_credentials_user_id 
     ON public.user_graphical_credentials (user_id);
+

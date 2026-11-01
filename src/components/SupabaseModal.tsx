@@ -26,8 +26,14 @@ interface SupabaseModalProps {
   onConnectionChange?: () => void;
 }
 
-const SQL_SCHEMA = `-- SecureShield: Graphical Password Authentication Module
--- Run in Supabase SQL Editor:
+const SQL_SCHEMA = `-- ============================================================================
+-- SecureShield: Enterprise Architecture Schema (PostgreSQL + Supabase)
+-- 1. Graphical Password Authentication Module
+-- 2. Internal Canary Tokens & Intrusion Deception Engine
+-- 3. Server-Side Incident Recording RPC with Row Level Security (RLS)
+-- ============================================================================
+
+-- MODULE 1: User Graphical Credentials
 CREATE TABLE IF NOT EXISTS public.user_graphical_credentials (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -54,7 +60,205 @@ CREATE POLICY "Users can insert their own graphical credential"
 CREATE POLICY "Users can update their own graphical credential"
     ON public.user_graphical_credentials FOR UPDATE
     USING (auth.uid() = user_id)
-    WITH CHECK (auth.uid() = user_id);`;
+    WITH CHECK (auth.uid() = user_id);
+
+-- MODULE 2: Internal Canary Tokens (Decoys & Tripwires)
+CREATE TABLE IF NOT EXISTS public.internal_canary_tokens (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL CHECK (type IN ('file', 'url', 'credential', 'custom')),
+    resource_description TEXT NOT NULL,
+    target_resource TEXT NOT NULL,
+    decoy_data TEXT DEFAULT '',
+    enabled BOOLEAN NOT NULL DEFAULT true,
+    trip_count INTEGER NOT NULL DEFAULT 0,
+    last_triggered_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now()),
+    metadata JSONB DEFAULT '{}'::jsonb
+);
+
+ALTER TABLE public.internal_canary_tokens ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Admins can view internal canary tokens"
+    ON public.internal_canary_tokens FOR SELECT
+    TO authenticated
+    USING (
+        auth.jwt() ->> 'email' ILIKE '%admin%' OR
+        (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
+    );
+
+CREATE POLICY "Admins can insert internal canary tokens"
+    ON public.internal_canary_tokens FOR INSERT
+    TO authenticated
+    WITH CHECK (
+        auth.jwt() ->> 'email' ILIKE '%admin%' OR
+        (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
+    );
+
+CREATE POLICY "Admins can update internal canary tokens"
+    ON public.internal_canary_tokens FOR UPDATE
+    TO authenticated
+    USING (
+        auth.jwt() ->> 'email' ILIKE '%admin%' OR
+        (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
+    )
+    WITH CHECK (
+        auth.jwt() ->> 'email' ILIKE '%admin%' OR
+        (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
+    );
+
+CREATE POLICY "Admins can delete internal canary tokens"
+    ON public.internal_canary_tokens FOR DELETE
+    TO authenticated
+    USING (
+        auth.jwt() ->> 'email' ILIKE '%admin%' OR
+        (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
+    );
+
+-- MODULE 3: Internal Canary Incidents (Immutable Audit Telemetry)
+CREATE TABLE IF NOT EXISTS public.internal_canary_incidents (
+    id TEXT PRIMARY KEY,
+    token_id TEXT NOT NULL,
+    token_name TEXT NOT NULL,
+    token_type TEXT NOT NULL,
+    resource_name TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now()),
+    severity TEXT NOT NULL CHECK (severity IN ('CRITICAL', 'HIGH', 'MEDIUM', 'LOW')),
+    user_context JSONB DEFAULT '{}'::jsonb,
+    summary TEXT NOT NULL,
+    origin TEXT NOT NULL DEFAULT 'server' CHECK (origin IN ('server', 'sandbox'))
+);
+
+ALTER TABLE public.internal_canary_incidents ENABLE ROW LEVEL SECURITY;
+
+-- RLS: Only authenticated administrators can view canary incidents
+CREATE POLICY "Admins can view canary incidents"
+    ON public.internal_canary_incidents FOR SELECT
+    TO authenticated
+    USING (
+        auth.jwt() ->> 'email' ILIKE '%admin%' OR
+        (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
+    );
+
+-- RLS: Normal users CANNOT insert, update, or delete incident records directly.
+-- Only the server-side SECURITY DEFINER function can insert incidents!
+CREATE POLICY "Admins can delete canary incidents"
+    ON public.internal_canary_incidents FOR DELETE
+    TO authenticated
+    USING (
+        auth.jwt() ->> 'email' ILIKE '%admin%' OR
+        (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
+    );
+
+-- MODULE 4: Server-Side Incident Recording RPC Function
+CREATE OR REPLACE FUNCTION public.record_canary_incident(
+    p_token_id TEXT,
+    p_event_type TEXT DEFAULT 'DECOY_ACCESS',
+    p_severity TEXT DEFAULT 'HIGH',
+    p_summary TEXT DEFAULT NULL,
+    p_user_context JSONB DEFAULT '{}'::jsonb
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_token RECORD;
+    v_incident_id TEXT;
+    v_now TIMESTAMP WITH TIME ZONE := timezone('utc'::text, now());
+    v_final_severity TEXT;
+    v_final_summary TEXT;
+    v_combined_context JSONB;
+    v_incident RECORD;
+BEGIN
+    -- 1. Server-side validation: Check token existence and enabled state
+    SELECT * INTO v_token
+    FROM public.internal_canary_tokens
+    WHERE id = p_token_id;
+
+    IF NOT FOUND THEN
+        RETURN jsonb_build_object(
+            'success', false,
+            'error', 'Token not found or does not exist on server'
+        );
+    END IF;
+
+    IF NOT v_token.enabled THEN
+        RETURN jsonb_build_object(
+            'success', false,
+            'error', 'Token is currently disabled; tripwire event ignored by server policy'
+        );
+    END IF;
+
+    -- Validate severity
+    IF p_severity IN ('CRITICAL', 'HIGH', 'MEDIUM', 'LOW') THEN
+        v_final_severity := p_severity;
+    ELSE
+        v_final_severity := 'HIGH';
+    END IF;
+
+    -- 2. Server-side atomic counter increment
+    UPDATE public.internal_canary_tokens
+    SET trip_count = trip_count + 1,
+        last_triggered_at = v_now,
+        updated_at = v_now
+    WHERE id = p_token_id;
+
+    -- 3. Generate unique server incident ID
+    v_incident_id := 'inc_' || encode(gen_random_bytes(6), 'hex') || '_' || to_char(v_now, 'YYYYMMDDHH24MISS');
+
+    IF p_summary IS NULL OR trim(p_summary) = '' THEN
+        v_final_summary := format('Canary tripwire [%s] triggered via %s. Severity: %s.', v_token.name, p_event_type, v_final_severity);
+    ELSE
+        v_final_summary := trim(p_summary);
+    END IF;
+
+    -- 4. Server-verified authenticated context
+    v_combined_context := coalesce(p_user_context, '{}'::jsonb) || jsonb_build_object(
+        'server_timestamp', v_now,
+        'auth_uid', auth.uid(),
+        'auth_role', auth.role()
+    );
+
+    -- 5. Insert immutable incident record with origin = 'server'
+    INSERT INTO public.internal_canary_incidents (
+        id,
+        token_id,
+        token_name,
+        token_type,
+        resource_name,
+        event_type,
+        timestamp,
+        severity,
+        user_context,
+        summary,
+        origin
+    ) VALUES (
+        v_incident_id,
+        v_token.id,
+        v_token.name,
+        v_token.type,
+        v_token.resource_description,
+        p_event_type,
+        v_now,
+        v_final_severity,
+        v_combined_context,
+        v_final_summary,
+        'server'
+    ) RETURNING * INTO v_incident;
+
+    RETURN jsonb_build_object(
+        'success', true,
+        'incident', row_to_json(v_incident)
+    );
+END;
+$$;
+
+-- Grant execution to authenticated and anon users
+GRANT EXECUTE ON FUNCTION public.record_canary_incident(TEXT, TEXT, TEXT, TEXT, JSONB) TO anon, authenticated;`;
 
 export const SupabaseModal = ({
   isOpen,

@@ -5,7 +5,6 @@ import {
   ArrowRight,
   CheckCircle2,
   AlertTriangle,
-  User,
   ShieldAlert,
   Database,
 } from 'lucide-react';
@@ -355,7 +354,7 @@ export const App: React.FC = () => {
     try {
       const activeCred = authService.getCredentialForUser(pendingUser.id) || pendingCredential;
 
-      // Method deception barrier: if identity was enrolled with recall, recognition attempt fails
+      // Method verification barrier: if identity was enrolled with recall, recognition attempt fails
       if (activeCred.auth_method !== 'recognition') {
         const nextCount = (activeCred.failed_attempts || 0) + 1;
         setPendingCredential({
@@ -416,7 +415,7 @@ export const App: React.FC = () => {
     try {
       const activeCred = authService.getCredentialForUser(pendingUser.id) || pendingCredential;
 
-      // Method deception barrier: if identity was enrolled with recognition, recall attempt fails
+      // Method verification barrier: if identity was enrolled with recognition, recall attempt fails
       if (activeCred.auth_method !== 'recall') {
         const nextCount = (activeCred.failed_attempts || 0) + 1;
         setPendingCredential({
@@ -522,65 +521,56 @@ export const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Right side controls & Role Switcher */}
+        {/* Right side controls */}
         <div className="flex items-center gap-3">
           {session && (
             <div className="flex items-center gap-2">
-              <span
-                className={`px-2.5 py-1 rounded-full text-xs font-mono font-bold flex items-center gap-1.5 ${
-                  session.user.role === 'admin'
-                    ? 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 border border-indigo-500/30'
-                    : 'bg-teal-500/15 text-teal-700 dark:text-teal-400 border border-teal-500/30'
-                }`}
-              >
-                {session.user.role === 'admin' ? (
-                  <>
+              {/* Only show Administrator badge and preview toggle if the account belongs to an Administrator */}
+              {session.user.email?.toLowerCase().includes('admin') && (
+                <>
+                  <span className="px-2.5 py-1 rounded-full text-xs font-mono font-bold flex items-center gap-1.5 bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 border border-indigo-500/30">
                     <ShieldAlert className="w-3.5 h-3.5" />
                     <span>Administrator</span>
-                  </>
-                ) : (
-                  <>
-                    <User className="w-3.5 h-3.5" />
-                    <span>Normal User</span>
-                  </>
-                )}
-              </span>
+                  </span>
 
-              {/* Instant Role Simulator (Demo Mode) */}
-              {session.isDemoMode && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const nextRole: import('./types').UserRole = session.user.role === 'admin' ? 'user' : 'admin';
-                    const updatedUser: UserProfile = { ...session.user, role: nextRole };
-                    setSession({ ...session, user: updatedUser });
-                    showToast(
-                      `Switched interface view to ${nextRole === 'admin' ? 'Administrator' : 'Normal User'} Mode`
-                    );
-                  }}
-                  className="px-2.5 py-1 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors"
-                  title="Switch between Normal User and Administrator dashboards"
-                >
-                  View as {session.user.role === 'admin' ? 'User' : 'Admin'}
-                </button>
+                  {session.isDemoMode && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextRole: import('./types').UserRole = session.user.role === 'admin' ? 'user' : 'admin';
+                        const updatedUser: UserProfile = { ...session.user, role: nextRole };
+                        setSession({ ...session, user: updatedUser });
+                        showToast(
+                          `Switched interface view to ${nextRole === 'admin' ? 'Administrator' : 'Normal User'} Mode`
+                        );
+                      }}
+                      className="px-2.5 py-1 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+                      title="Switch between Normal User and Administrator dashboards"
+                    >
+                      View as {session.user.role === 'admin' ? 'User' : 'Admin'}
+                    </button>
+                  )}
+                </>
               )}
             </div>
           )}
 
-          {/* Database Connection & Sandbox Config */}
-          <button
-            type="button"
-            onClick={() => setShowDatabaseModal(true)}
-            className={`px-2.5 py-1.5 rounded-xl text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors border shadow-sm ${
-              isSupabaseLive
-                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
-            }`}
-            title="Click to view database connection status and SQL schemas"
-          >
-            <Database className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{isSupabaseLive ? 'Supabase Live' : 'Enterprise Sandbox'}</span>
-          </button>
+          {/* Database Connection & Sandbox Config (Only shown for Admin or when not logged into a user dashboard) */}
+          {(!session || session.user.role === 'admin') && (
+            <button
+              type="button"
+              onClick={() => setShowDatabaseModal(true)}
+              className={`px-2.5 py-1.5 rounded-xl text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors border shadow-sm ${
+                isSupabaseLive
+                  ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+              title="Click to view database connection status and SQL schemas"
+            >
+              <Database className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{isSupabaseLive ? 'Supabase Live' : 'Enterprise Sandbox'}</span>
+            </button>
+          )}
 
           {/* Theme Switcher */}
           <ThemeToggle />
@@ -739,7 +729,7 @@ export const App: React.FC = () => {
               </button>
 
               <div className="flex flex-wrap items-center gap-2.5">
-                {/* Method selector for deception / user choice */}
+                {/* Method selector for visual authentication mode */}
                 <div className="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
                   <button
                     type="button"

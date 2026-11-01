@@ -172,8 +172,18 @@ export async function testSupabaseConnection(
       .from('user_graphical_credentials')
       .select('count', { count: 'exact', head: true });
 
+    // 3. Test check for internal_canary_tokens table
+    const { error: canaryError } = await testClient
+      .from('internal_canary_tokens')
+      .select('count', { count: 'exact', head: true });
+
+    const isCanaryMissing =
+      canaryError &&
+      (canaryError.code === '42P01' ||
+        canaryError.message?.toLowerCase().includes('does not exist') ||
+        canaryError.message?.toLowerCase().includes('relation'));
+
     if (dbError) {
-      // If table doesn't exist (PGRST204 or 42P01)
       if (
         dbError.code === '42P01' ||
         dbError.message?.toLowerCase().includes('does not exist') ||
@@ -181,15 +191,23 @@ export async function testSupabaseConnection(
       ) {
         return {
           success: true,
-          message: 'Connected to Supabase! However, the `user_graphical_credentials` table has not been created yet. Please execute the SQL schema below in your Supabase SQL Editor.',
+          message: 'Connected to Supabase! However, database tables have not been created yet. Please execute the complete SQL schema below in your Supabase SQL Editor.',
           tableFound: false,
         };
       }
     }
 
+    if (isCanaryMissing) {
+      return {
+        success: true,
+        message: 'Connected to Supabase! Graphical credentials are ready, but the Canary Threat Deception tables are not yet created. Execute the Canary SQL schema in your Supabase SQL Editor to enable real backend monitoring.',
+        tableFound: true,
+      };
+    }
+
     return {
       success: true,
-      message: 'Successfully connected to Supabase! Auth service and `user_graphical_credentials` table are active and ready.',
+      message: 'Successfully connected to Supabase! Auth service, `user_graphical_credentials`, and `internal_canary_tokens` backend monitoring are all active and ready.',
       tableFound: true,
     };
   } catch (err: any) {
